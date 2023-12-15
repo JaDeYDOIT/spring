@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<!-- order.xml --> 
+
+<mapper namespace="order">
+	<select id="orderno" parameterType="String" resultType="String">
+		SELECT NVL(MAX(orderno),'1')
+		FROM orderlist
+		WHERE orderno LIKE #{cdate} || '%'
+	</select>
+	
+	<select id="totalamount" parameterType="String" resultType="int">
+		SELECT SUM(price*qty)
+		FROM cart
+		WHERE id=#{s_id}
+	</select>
+	
+	<insert id="orderlistInsert" parameterType="kr.co.itwill.order.OrderDTO">
+		INSERT INTO orderlist(orderno, id, totalamount, payment, deliverynm, deliveryaddr, ordercheck)
+		VALUES (#{orderno}, #{id}, #{totalamount}, #{payment}, #{deliverynm}, #{deliveryaddr}, 'I')
+	</insert>
+	
+	<!-- cart테이블에 있는 행을 orderdetail테이블에 추가하기 -->
+	<insert id="orderdetailInsert" parameterType="java.util.HashMap">
+		INSERT INTO orderdetail(ono, orderno, product_code, qty, price)
+			SELECT orderdetail_seq.nextval, #{orderno} ,product_code, qty, price
+			FROM cart
+			WHERE id=#{s_id}
+	</insert>
+	
+	<delete id="cartDelete" parameterType="String">
+		DELETE FROM cart
+		WHERE id=#{s_id}
+	</delete>
+</mapper>
